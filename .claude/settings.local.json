@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(wsl --status 2>&1; echo \"---\"; \\(Get-Command docker -ErrorAction SilentlyContinue\\) | Select-Object Name, Source; echo \"---\"; python --version 2>&1; python3 --version 2>&1)",
+      "PowerShell(Get-Command bash -ErrorAction SilentlyContinue)",
+      "PowerShell(Get-Command shellcheck -ErrorAction SilentlyContinue)",
+      "PowerShell(python -c \"import curses\" 2>&1)"
+    ]
+  }
+}
