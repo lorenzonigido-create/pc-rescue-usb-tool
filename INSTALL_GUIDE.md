@@ -244,6 +244,7 @@ hdparm                 — Benchmark lettura disco
 fio                    — Benchmark IOPS disco
 stress-ng              — Stress test termico
 lm-sensors             — Temperature e ventole
+bc                     — Calcoli numerici negli script bash
 grub-pc-bin            — Bootloader GRUB BIOS/MBR
 midnight-commander     — File manager testuale
 openssh-server         — Accesso remoto SSH
