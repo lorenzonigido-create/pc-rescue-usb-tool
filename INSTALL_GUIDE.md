@@ -1,20 +1,27 @@
-# 🔧 PC RESCUE USB TOOL v1.0 — Guida Completa
+# PC RESCUE USB TOOL v1.0 — Guida Completa
 
-## 📦 Cosa ti serve
+## Cosa ti serve
 
 | Elemento | Dettaglio |
 |---|---|
 | USB | Minimo **16 GB** (consigliato 32 GB) |
-| OS per creare la USB | Linux (Ubuntu/Debian) |
-| Permessi | Root (sudo) |
+| OS per creare la USB | Linux (Ubuntu/Debian) con accesso root |
 | Sistema base | Debian 12 Bookworm minimal |
 
 ---
 
-## 🚀 Passo 1 — Prepara il sistema Linux host
+## Passo 1 — Clona il repository
 
 ```bash
-# Installa i tool necessari
+git clone https://github.com/lorenzonigido-create/pc-rescue-usb-tool.git
+cd pc-rescue-usb-tool
+```
+
+---
+
+## Passo 2 — Installa le dipendenze sull'host Linux
+
+```bash
 sudo apt update
 sudo apt install -y \
   parted grub-pc-bin grub-common \
@@ -24,66 +31,70 @@ sudo apt install -y \
   python3 python3-curses \
   ms-sys gdisk ntfs-3g \
   openssh-server links2 rsync nmap \
-  lm-sensors dmidecode
+  lm-sensors dmidecode \
+  chntpw wimtools cabextract python3-pip
+
+pip3 install python-evtx
 ```
 
 ---
 
-## 🚀 Passo 2 — Identifica la tua USB
+## Passo 3 — Identifica la USB
 
 ```bash
-# Inserisci la USB, poi:
 lsblk
 # oppure:
 fdisk -l | grep "Disk /dev"
-# Nota il dispositivo, es: /dev/sdb
+# Annota il dispositivo, es: /dev/sdb
 ```
+
+> **ATTENZIONE**: il passo successivo cancella tutti i dati sulla USB. Assicurati di aver scelto il dispositivo corretto.
 
 ---
 
-## 🚀 Passo 3 — Crea la USB Rescue
+## Passo 4 — Crea la struttura USB
+
+Lo script partiziona la USB (FAT32 200 MB per GRUB + EXT4 per il sistema), installa GRUB e copia tutti gli script nella posizione corretta.
 
 ```bash
-# Clona il repository del tool
-cd ~/pc-rescue-tool
-
-# Rendi eseguibile lo script
 chmod +x setup_rescue_usb.sh
-
-# Esegui (sostituisci /dev/sdb con il tuo dispositivo)
 sudo bash setup_rescue_usb.sh /dev/sdb
 ```
 
-> ⚠️ **ATTENZIONE**: Tutti i dati sulla USB verranno cancellati!
+Al termine vedrai:
+
+```
+✓  USB RESCUE TOOL CREATA CON SUCCESSO!
+```
 
 ---
 
-## 🚀 Passo 4 — Installa il sistema base (Debian minimal)
+## Passo 5 — Installa il sistema base Debian
+
+La partizione EXT4 è pronta ma vuota. Installa Debian 12 minimal con debootstrap:
 
 ```bash
-# Scarica Debian netinst
-wget https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-12-amd64-netinst.iso
-
-# Oppure usa debootstrap per un sistema minimo
 sudo debootstrap --arch=amd64 bookworm /mnt/rescue_sys \
   http://deb.debian.org/debian/
+```
 
-# Installa i pacchetti rescue
+Poi installa i pacchetti rescue leggendoli da `config/packages.txt`:
+
+```bash
 sudo chroot /mnt/rescue_sys bash -c "
   apt update
-  apt install -y $(cat /mnt/rescue_sys/config/packages.txt | grep -v '#' | tr '\n' ' ')
+  apt install -y \$(grep -v '#' /config/packages.txt | tr '\n' ' ')
+  pip3 install python-evtx
 "
 ```
 
 ---
 
-## 🚀 Passo 5 — Configura l'avvio automatico del menu
+## Passo 6 — Configura l'avvio automatico del menu
 
 ```bash
-# Nel sistema chroot
 sudo chroot /mnt/rescue_sys bash << 'EOF'
 
-# Crea servizio systemd per il menu
 cat > /etc/systemd/system/rescue-menu.service << 'SVC'
 [Unit]
 Description=PC Rescue Menu
@@ -101,8 +112,6 @@ WantedBy=multi-user.target
 SVC
 
 systemctl enable rescue-menu.service
-
-# Disabilita login automatico (usa solo il menu)
 systemctl set-default multi-user.target
 
 EOF
@@ -110,31 +119,29 @@ EOF
 
 ---
 
-## 📋 Struttura file finale
+## Struttura file sulla USB
 
 ```
-USB (16GB)
-├── [Partizione 1 FAT32 200MB] — Boot
+USB
+├── [Partizione 1 — FAT32 200 MB — RESCUE_BOOT]
 │   └── boot/
-│       ├── grub/
-│       │   └── grub.cfg
+│       ├── grub/grub.cfg
 │       ├── vmlinuz
 │       └── initrd.img
 │
-└── [Partizione 2 EXT4 ~15GB] — Sistema
-    ├── [sistema Debian minimal]
+└── [Partizione 2 — EXT4 ~15 GB — RESCUE_SYS]
+    ├── [sistema Debian 12 minimal]
     ├── tools/
-    │   ├── recovery/
-    │   │   └── boot_repair.sh
-    │   ├── data_recovery/
-    │   │   └── recover_data.sh
-    │   ├── diagnostics/
-    │   │   └── diagnostics.sh
-    │   ├── antivirus/
-    │   ├── backup/
-    │   ├── password/
-    │   ├── network/
-    │   └── advanced/
+    │   ├── recovery/          — Riparazione boot Windows/Linux
+    │   ├── windows/
+    │   │   └── windows_sysrepair.sh
+    │   ├── data_recovery/     — TestDisk, PhotoRec, ddrescue
+    │   ├── diagnostics/       — SMART, RAM, badblocks, hardware
+    │   ├── antivirus/         — ClamAV, chkrootkit, rkhunter
+    │   ├── backup/            — Clonezilla, dd, rsync
+    │   ├── password/          — chntpw, reset Linux
+    │   ├── network/           — WiFi, SSH, links2
+    │   └── advanced/          — GParted, MC, editor
     ├── gui/
     │   └── rescue_menu.py
     ├── logs/
@@ -144,9 +151,9 @@ USB (16GB)
 
 ---
 
-## 💻 Come usare la USB su un PC da riparare
+## Come usare la USB su un PC da riparare
 
-### Accedere al BIOS/Boot Menu
+### Tasto boot menu per marca
 
 | Marca PC | Tasto |
 |---|---|
@@ -160,79 +167,108 @@ USB (16GB)
 
 ### Sequenza di avvio
 
-1. Inserisci USB → Accendi PC → Premi tasto boot menu
+1. Inserisci USB → accendi il PC → premi il tasto boot menu
 2. Seleziona la USB → GRUB si avvia
 3. Scegli **"PC Rescue Tool"**
-4. Il menu Python si apre automaticamente
-5. Naviga con **↑↓** → Seleziona con **INVIO**
+4. Il menu si apre automaticamente
+5. Naviga con **↑↓**, seleziona con **INVIO**, torna indietro con **B**
 
 ---
 
-## 🛡️ Funzionalità dettagliate
+## Funzionalità
 
-### 1. Recovery Sistema
-- Ripara MBR/BCD Windows (bootrec equivalente)
-- Reinstalla GRUB per Linux
+### Recovery Sistema Operativo
+- Ripara MBR/BCD Windows
+- Reinstalla GRUB Linux
 - Ripristina tabella partizioni GPT corrotta
 
-### 2. Recupero Dati
-- **TestDisk**: recupera partizioni e file cancellati
-- **PhotoRec**: recupera foto, video, documenti da qualsiasi disco
-- **ddrescue**: clona dischi fisicamente danneggiati byte per byte
+### Windows System Repair
+Monta la partizione NTFS del PC target e offre:
+- **SFC Offline**: verifica 25+ file critici di sistema (kernel, DLL, eseguibili)
+- **DISM Offline**: estrae e ripristina file da `install.wim` / `install.esd`
+- **Registro**: backup/restore hive, analisi chiavi di avvio (Run/RunOnce), reset password account Windows
+- **DLL & Driver**: scansione DLL critiche mancanti o corrotte, analisi driver `.sys` sospetti
+- **Log eventi**: lettura file `.evtx` con filtri per BSOD, errori disco, crash applicazioni
+- **Report completo**: output pulito salvato in `/logs/`
 
-### 3. Diagnostica
-- Test RAM con Memtest86+
-- S.M.A.R.T. per stato salute dischi
-- Badblocks per settori danneggiati
-- Report hardware completo
+### Recupero Dati
+- **TestDisk**: recupera partizioni e file system
+- **PhotoRec**: recupera foto, video, documenti
+- **ddrescue**: clona dischi fisicamente danneggiati
 
-### 4. Antivirus
-- ClamAV: scansione malware
-- chkrootkit + rkhunter: rileva rootkit
+### Diagnostica
+- Test RAM (Memtest86+), S.M.A.R.T., badblocks, report hardware completo
 
-### 5. Backup
-- Clonezilla: backup/ripristino partizioni
-- dd: immagine disco completa
-- rsync: sincronizzazione dati
+### Antivirus & Malware
+- ClamAV, chkrootkit, rkhunter
 
-### 6. Reset Password
-- Reset password Windows (chntpw)
-- Reset password Linux (chroot)
+### Backup & Clonazione
+- Clonezilla, dd, rsync
+
+### Reset Password
+- Windows (chntpw), Linux (chroot)
+
+### Rete & Accesso Remoto
+- Configurazione WiFi/Ethernet, SSH server, browser testuale, trasferimento file
 
 ---
 
-## 🔧 Tool software inclusi
+## Tool software inclusi
 
 ```
-testdisk / photorec    — Recupero dati
-gddrescue              — Clonazione dischi
-smartmontools          — Diagnostica dischi
+testdisk / photorec    — Recupero dati e partizioni
+gddrescue              — Clonazione dischi danneggiati
+smartmontools          — Diagnostica S.M.A.R.T.
 memtest86+             — Test RAM
-gparted                — Editor partizioni
+gparted                — Editor partizioni grafico
 clamav                 — Antivirus
 chkrootkit / rkhunter  — Anti-rootkit
-chntpw                 — Reset password Windows
-grub-repair            — Riparazione GRUB
-ntfs-3g                — Accesso NTFS
-midnight-commander     — File manager
-openssh-server         — Accesso remoto
-nmap                   — Diagnostica rete
-rsync                  — Backup/sync
+ntfs-3g                — Lettura/scrittura NTFS
+chntpw                 — Gestione registro e password Windows
+wimtools               — Estrazione file da install.wim (DISM offline)
+cabextract             — Estrazione archivi CAB Windows
+python-evtx            — Lettura log eventi .evtx
+grub-pc-bin            — Bootloader GRUB BIOS/MBR
+midnight-commander     — File manager testuale
+openssh-server         — Accesso remoto SSH
+nmap                   — Scansione rete
+rsync                  — Backup/sincronizzazione
 ```
 
 ---
 
-## ❓ FAQ
+## FAQ
 
 **Q: Funziona su PC UEFI?**
-A: Sì, ma devi aggiungere il bootloader UEFI. Usa `grub-install --target=x86_64-efi` invece di `i386-pc`.
+A: Sì, ma devi modificare il comando GRUB. In `setup_rescue_usb.sh`, nella funzione `install_grub`, sostituisci:
+```bash
+grub-install --target=i386-pc ...
+```
+con:
+```bash
+grub-install --target=x86_64-efi --efi-directory=$MOUNT_BOOT --bootloader-id=RESCUE
+```
 
-**Q: Posso aggiungere altri tool?**
-A: Sì, copia gli script in `/tools/<categoria>/` e aggiornali in `rescue_menu.py`.
+**Q: Windows System Repair non riesce a montare la partizione.**
+A: Il PC potrebbe avere la funzione Avvio Rapido (Fast Startup) attiva. Prova prima:
+```bash
+ntfsfix /dev/sdaX
+```
+poi ritenta il montaggio. Se il disco è ibernato, il flag `remove_hiberfile` viene già passato automaticamente.
+
+**Q: DISM offline non trova install.wim.**
+A: Il file si trova sul supporto di installazione Windows (DVD o ISO). Collega il DVD o monta l'ISO:
+```bash
+mount -o loop /path/to/windows.iso /mnt/winiso
+```
+poi indica il path `/mnt/winiso/sources/install.wim` quando richiesto.
+
+**Q: Come aggiungo un nuovo tool al menu?**
+A: Copia lo script in `/tools/<categoria>/` sulla USB e aggiungi una voce al `MENU` in `rescue_menu.py`.
 
 **Q: I log dove vengono salvati?**
-A: In `/logs/` sulla partizione EXT4 della USB.
+A: In `/logs/` sulla partizione EXT4 della USB. Ogni operazione genera un file con timestamp.
 
 ---
 
-*PC Rescue Tool v1.0 — Creato con ❤️ per tecnici e appassionati*
+*PC Rescue Tool v1.0 — Lorenzo Nigido*
