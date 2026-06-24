@@ -141,6 +141,9 @@ def main_menu(stdscr):
             ("Browser web (links2)",                 "/tools/network/browser.sh"),
             ("Trasferimento file (sftp/scp)",        "/tools/network/file_transfer.sh"),
         ]),
+        ("📊  Analisi Performance",          "perf",       [
+            ("Avvia Performance Analysis Tool",       "/tools/performance/performance_check.sh"),
+        ]),
         ("⚙️  Strumenti Avanzati",           "adv",        [
             ("Editor partizioni (GParted)",          "/tools/advanced/gparted.sh"),
             ("Terminale bash",                       "/tools/advanced/terminal.sh"),

@@ -73,7 +73,7 @@ mount_usb() {
 create_structure() {
   echo -e "${CYAN}[*] Creazione struttura cartelle...${NC}"
   mkdir -p $MOUNT_SYS/{tools,gui,logs,config}
-  mkdir -p $MOUNT_SYS/tools/{recovery,data_recovery,diagnostics,antivirus,backup,password,network,advanced,windows}
+  mkdir -p $MOUNT_SYS/tools/{recovery,data_recovery,diagnostics,antivirus,backup,password,network,advanced,windows,performance}
   echo -e "${GREEN}[✓] Struttura creata${NC}"
 }
 
@@ -93,6 +93,10 @@ install_scripts() {
   # Copia script Windows repair
   cp "$(dirname "$0")/windows_sysrepair.sh" $MOUNT_SYS/tools/windows/
   chmod +x $MOUNT_SYS/tools/windows/windows_sysrepair.sh
+
+  # Copia script performance
+  cp "$(dirname "$0")/performance_check.sh" $MOUNT_SYS/tools/performance/
+  chmod +x $MOUNT_SYS/tools/performance/performance_check.sh
   chmod +x $MOUNT_SYS/gui/rescue_menu.py
 
   echo -e "${GREEN}[✓] Script installati${NC}"
@@ -162,6 +166,14 @@ wimtools
 cabextract
 python3-pip
 # dopo installazione: pip3 install python-evtx
+
+# Performance analysis
+sysbench
+hdparm
+fio
+stress-ng
+lm-sensors
+bc
 EOF
   echo -e "${GREEN}[✓] Lista pacchetti creata${NC}"
 }

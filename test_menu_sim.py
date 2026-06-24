@@ -55,6 +55,9 @@ MENU = [
         ("Browser web (links2)",                 "/tools/network/browser.sh"),
         ("Trasferimento file (sftp/scp)",        "/tools/network/file_transfer.sh"),
     ]),
+    ("Analisi Performance", "perf", [
+        ("Avvia Performance Analysis Tool",       "/tools/performance/performance_check.sh"),
+    ]),
     ("Strumenti Avanzati", "adv", [
         ("Editor partizioni (GParted)",          "/tools/advanced/gparted.sh"),
         ("Terminale bash",                       "/tools/advanced/terminal.sh"),
@@ -108,7 +111,7 @@ def test_categories():
     print("=" * 55)
     print("TEST 3: Categorie attese")
     print("=" * 55)
-    expected = {"recovery", "winrepair", "data", "diag", "av", "backup", "passwd", "net", "adv"}
+    expected = {"recovery", "winrepair", "data", "diag", "av", "backup", "passwd", "net", "perf", "adv"}
     found    = {key for _, key, _ in MENU}
     missing  = expected - found
     extra    = found - expected

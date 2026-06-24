@@ -135,6 +135,8 @@ USB
     │   ├── recovery/          — Riparazione boot Windows/Linux
     │   ├── windows/
     │   │   └── windows_sysrepair.sh
+    │   ├── performance/
+    │   │   └── performance_check.sh
     │   ├── data_recovery/     — TestDisk, PhotoRec, ddrescue
     │   ├── diagnostics/       — SMART, RAM, badblocks, hardware
     │   ├── antivirus/         — ClamAV, chkrootkit, rkhunter
@@ -208,6 +210,15 @@ Monta la partizione NTFS del PC target e offre:
 ### Reset Password
 - Windows (chntpw), Linux (chroot)
 
+### Analisi Performance
+- **Panoramica sistema**: CPU (modello, frequenza, temperatura), RAM (tipo, velocità, uso), dischi, GPU
+- **Benchmark CPU**: single-thread e multi-thread (sysbench), test banda RAM
+- **Benchmark disco**: lettura/scrittura sequenziale (hdparm, dd), IOPS random 4K (fio), latenza, stato S.M.A.R.T.
+- **Analisi RAM**: moduli fisici installati, banda, top processi per memoria, pressione swap
+- **Analisi termica**: temperature sensori, velocità ventole, stress test termico opzionale (stress-ng)
+- **Performance rete**: velocità interfacce, latenza ping, risoluzione DNS
+- **Report completo**: salvato in `/logs/`
+
 ### Rete & Accesso Remoto
 - Configurazione WiFi/Ethernet, SSH server, browser testuale, trasferimento file
 
@@ -228,6 +239,11 @@ chntpw                 — Gestione registro e password Windows
 wimtools               — Estrazione file da install.wim (DISM offline)
 cabextract             — Estrazione archivi CAB Windows
 python-evtx            — Lettura log eventi .evtx
+sysbench               — Benchmark CPU e RAM
+hdparm                 — Benchmark lettura disco
+fio                    — Benchmark IOPS disco
+stress-ng              — Stress test termico
+lm-sensors             — Temperature e ventole
 grub-pc-bin            — Bootloader GRUB BIOS/MBR
 midnight-commander     — File manager testuale
 openssh-server         — Accesso remoto SSH
