@@ -73,7 +73,7 @@ mount_usb() {
 create_structure() {
   echo -e "${CYAN}[*] Creazione struttura cartelle...${NC}"
   mkdir -p $MOUNT_SYS/{tools,gui,logs,config}
-  mkdir -p $MOUNT_SYS/tools/{recovery,data_recovery,diagnostics,antivirus,backup,password,network,advanced}
+  mkdir -p $MOUNT_SYS/tools/{recovery,data_recovery,diagnostics,antivirus,backup,password,network,advanced,windows}
   echo -e "${GREEN}[✓] Struttura creata${NC}"
 }
 
@@ -89,6 +89,10 @@ install_scripts() {
 
   # Copia il menu GUI
   cp "$(dirname "$0")/rescue_menu.py" $MOUNT_SYS/gui/
+
+  # Copia script Windows repair
+  cp "$(dirname "$0")/windows_sysrepair.sh" $MOUNT_SYS/tools/windows/
+  chmod +x $MOUNT_SYS/tools/windows/windows_sysrepair.sh
   chmod +x $MOUNT_SYS/gui/rescue_menu.py
 
   echo -e "${GREEN}[✓] Script installati${NC}"
@@ -150,6 +154,14 @@ vim
 htop
 python3
 python3-curses
+
+# Windows repair
+ntfs-3g
+chntpw
+wimtools
+cabextract
+python3-pip
+# dopo installazione: pip3 install python-evtx
 EOF
   echo -e "${GREEN}[✓] Lista pacchetti creata${NC}"
 }

@@ -103,6 +103,9 @@ def main_menu(stdscr):
             ("Ripara tabella partizioni GPT",         "/tools/recovery/fix_gpt.sh"),
             ("Modalità recovery Windows PE",          "/tools/recovery/winpe_boot.sh"),
         ]),
+        ("🪟  Windows System Repair",        "winrepair",  [
+            ("Avvia Windows System Repair Tool",      "/tools/windows/windows_sysrepair.sh"),
+        ]),
         ("💾  Recupero Dati Persi",          "data",       [
             ("Recupera file cancellati (TestDisk)",   "/tools/data_recovery/testdisk.sh"),
             ("Recupera foto/video (PhotoRec)",        "/tools/data_recovery/photorec.sh"),

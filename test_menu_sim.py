@@ -17,6 +17,9 @@ MENU = [
         ("Ripara tabella partizioni GPT",         "/tools/recovery/fix_gpt.sh"),
         ("Modalita recovery Windows PE",          "/tools/recovery/winpe_boot.sh"),
     ]),
+    ("Windows System Repair", "winrepair", [
+        ("Avvia Windows System Repair Tool",      "/tools/windows/windows_sysrepair.sh"),
+    ]),
     ("Recupero Dati Persi", "data", [
         ("Recupera file cancellati (TestDisk)",   "/tools/data_recovery/testdisk.sh"),
         ("Recupera foto/video (PhotoRec)",        "/tools/data_recovery/photorec.sh"),
@@ -105,7 +108,7 @@ def test_categories():
     print("=" * 55)
     print("TEST 3: Categorie attese")
     print("=" * 55)
-    expected = {"recovery", "data", "diag", "av", "backup", "passwd", "net", "adv"}
+    expected = {"recovery", "winrepair", "data", "diag", "av", "backup", "passwd", "net", "adv"}
     found    = {key for _, key, _ in MENU}
     missing  = expected - found
     extra    = found - expected
